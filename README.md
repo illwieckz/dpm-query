@@ -37,19 +37,19 @@ make install_tool
 
 # set high level and performance state profile on all DPM enabled cards
 
-dpm-tool set all high performance
+dpm-query set all high performance
 
 # set default on all DPM enabled cards
 
-dpm-tool set
+dpm-query set
 
 # get current level and state profile for all DPM enabled cards
 
-dpm-tool get
+dpm-query get
 
 # read more help
 
-dpm-tool help
+dpm-query help
 
 # uninstall
 
