@@ -1,0 +1,14 @@
+# This unit will be pulled before multi-user.target
+# To be sure it's pulled before any graphical login manager
+[Unit]
+Description=DPM profile
+
+[Service]
+Type=oneshot
+Environment='AS_SERVICE=true'
+ExecStart=/usr/bin/dpm-query set all low battery
+TimeoutSec=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
