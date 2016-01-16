@@ -6,7 +6,8 @@ Description=DPM profile
 [Service]
 Type=oneshot
 Environment='AS_SERVICE=true'
-ExecStart=/usr/bin/dpm-query set all low battery
+ExecStart=/usr/bin/dpm-query-service start
+ExecStop=/usr/bin/dpm-query-service stop
 TimeoutSec=0
 RemainAfterExit=yes
 

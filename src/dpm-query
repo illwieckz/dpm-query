@@ -1,35 +1,14 @@
 #! /bin/sh
 
+# Author:  Thomas DEBESSE <dev@illwieckz.net>
+# License: ISC
+
 tab="$(printf '\t')"
 
-_help () {
-	cat <<-EOF
-	usage: ${0} <action> [cards] [level] [state]
-
-	action:
-	${tab}get       (get DPM profile from selected cards)
-	${tab}set       (set DPM profile on selected cards)
-	${tab}help      (print this help)
-
-	cards:
-	${tab}all       (default}
-	${tab}0
-	${tab}0,1
-
-	level:
-	${tab}auto      (default)
-	${tab}low
-	${tab}high
-
-	state:
-	${tab}balanced  (default)
-	${tab}battery
-	${tab}performance
-
-	EOF
-
-	exit 0
-}
+test -f /etc/dpm-query/dpm.cfg && . /etc/dpm-query/dpm.cfg
+sys_dpm_cards="${dpm_cards:-all}"
+sys_dpm_level="${dpm_level:-auto}"
+sys_dpm_state="${dpm_state:-balanced}"
 
 _logger () {
 	while read line
@@ -75,7 +54,14 @@ _check_dpm () {
 }
 
 _list_cards () {
-	case "${1}" in
+	if [ "${1}" = 'default' ]
+	then
+		cards="${sys_dpm_cards:-all}"
+	else
+		cards="${1}"
+	fi
+
+	case "${cards}" in
 		'all')
 			for card in $(ls -d '/sys/class/drm/card'[0-9] | cut -c20-)
 			do
@@ -89,7 +75,7 @@ _list_cards () {
 			done
 		;;
 		*)
-			echo "${1}" | tr ',' '\n'
+			echo "${cards}" | tr ',' '\n'
 		;;
 	esac
 }
@@ -109,9 +95,46 @@ _set () {
 	fi
 }
 
+if [ "${AS_INCLUDE}" = 'yes' ]
+then
+	return
+fi
+
+_help () {
+	cat <<-EOF
+	usage: ${0} <action> [cards] [level] [state]
+
+	action:
+	${tab}get            (get DPM profile from selected cards)
+	${tab}set            (set DPM profile on selected cards)
+	${tab}help           (print this help)
+
+	cards:
+	${tab}default        (${sys_dpm_cards})
+	${tab}all
+	${tab}0
+	${tab}0,1
+
+	level:
+	${tab}default        (${sys_dpm_level})
+	${tab}auto
+	${tab}low
+	${tab}high
+
+	state:
+	${tab}default        (${sys_dpm_state})
+	${tab}balanced
+	${tab}battery
+	${tab}performance
+
+	EOF
+
+	exit 0
+}
+
 case "${1}" in
 	'get')
-		cards="${2:-0}"
+		cards="${2:-default}"
 		for card in $(_list_cards "${cards}")
 		do
 			_check_card "${card}"
@@ -122,16 +145,28 @@ case "${1}" in
 		done
 	;;
 	'set')
-		cards="${2:-0}"
+		cards="${2:-default}"
 		for card in $(_list_cards "${cards}")
 		do
 			_check_card "${card}"
 			_check_dpm "${card}"
 
-			level="${3:-auto}"
-			state="${4:-balanced}"
-			_set "${card}" 'power_dpm_force_performance_level' "${level}" || exit 31
-			_set "${card}" 'power_dpm_state' "${state}" || exit 32
+			if [ -z "${3}" ]
+			then
+				user_dpm_level="${sys_dpm_level}"
+			else
+				user_dpm_level="${3}"
+			fi
+
+			if [ -z "${4}" ]
+			then
+				user_dpm_state="${sys_dpm_state}"
+			else
+				user_dpm_state="${4}"
+			fi
+
+			_set "${card}" 'power_dpm_force_performance_level' "${user_dpm_level}" || exit 31
+			_set "${card}" 'power_dpm_state' "${user_dpm_state}" || exit 32
 		done
 	;;
 	*)

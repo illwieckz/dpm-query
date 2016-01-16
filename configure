@@ -1,0 +1,87 @@
+#! /bin/sh
+
+# Author:  Thomas DEBESSE <dev@illwieckz.net>
+# License: ISC
+
+tab="$(printf '\t')"
+
+_help () {
+	cat <<-EOF
+	usage: ${0} [options]
+
+	options:
+	${tab}--enable-service (enable systemd service installation)
+	${tab}-h|--help        (print this help)
+
+	EOF
+
+	exit 0
+}
+
+install_service='false'
+for arg in ${@}
+do
+	case "${arg}" in
+		'-h'|'--help')
+			_help
+			exit
+		;;
+		'--enable-service')
+			install_service='true'
+		;;
+	esac
+done
+
+_write_makefile () {
+	cat > Makefile <<-EOF
+	all:
+
+	install_tool:
+	${tab}cp src/dpm-query /usr/bin/dpm-query
+	${tab}chmod +x /usr/bin/dpm-query
+	${tab}mkdir -p /etc/dpm-query
+	${tab}cp src/dpm.cfg /etc/dpm-query/dpm.cfg
+
+	uninstall_tool:
+	${tab}rm /usr/bin/dpm-query
+	${tab}rm /etc/dpm-query/dpm.cfg
+	${tab}rmdir /etc/dpm-query
+
+	install_service:
+	${tab}cp src/service.cfg /etc/dpm-query/service.cfg
+	${tab}cp src/dpm-query-service /usr/bin/dpm-query-service
+	${tab}chmod +x /usr/bin/dpm-query-service
+	${tab}cp src/dpm-query.service /lib/systemd/system/dpm-query.service
+	${tab}systemctl enable dpm-query.service
+	${tab}systemctl start dpm-query.service
+
+	uninstall_service:
+	${tab}systemctl stop dpm-query.service
+	${tab}systemctl disable dpm-query.service
+	${tab}rm /usr/bin/dpm-query-service
+	${tab}rm /lib/systemd/system/dpm-query.service
+	${tab}rm /etc/dpm-query/service.cfg
+
+	EOF
+
+	if [ "${install_service}" = 'true' ]
+	then
+		cat >> Makefile <<-EOF
+		install: install_tool install_service
+
+		uninstall: uninstall_service uninstall_tool
+
+		EOF
+	else
+		cat >> Makefile <<-EOF
+		install: install_tool
+
+		uninstall: uninstall_tool
+
+		EOF
+	fi
+}
+
+_write_makefile
+
+#EOF

@@ -1,0 +1,91 @@
+#! /bin/sh
+
+# Author:  Thomas DEBESSE <dev@illwieckz.net>
+# License: ISC
+
+AS_INCLUDE='yes'
+if [ -f /usr/bin/dpm-query ]
+then
+	. /usr/bin/dpm-query
+else
+	printf 'ERROR: missing dpm-query tool%s\n'
+	exit 1
+fi
+
+test -f /etc/dpm-query/service.cfg && . /etc/dpm-query/service.cfg
+sys_dpm_user="${dpm_user:-root}"
+sys_dpm_group="${dpm_group:-video}"
+sys_dpm_group_perm="${dpm_group_perm:-yes}"
+
+_set_user_perm () {
+	printf 'dpm_user=%s\n' "${sys_dpm_user}" | _logger
+	printf 'dpm_group=%s\n' "${sys_dpm_group}" | _logger
+	printf 'dpm_group_perm=%s\n' "${sys_dpm_group_perm}" | _logger
+	for card in $(_list_cards "${sys_dpm_cards}")
+	do
+		for file in 'power_dpm_force_performance_level' 'power_dpm_state'
+		do
+			file_path="/sys/class/drm/card${card}/device/${file}"
+			chown "${sys_dpm_user}" "${file_path}"
+			chgrp "${sys_dpm_group}" "${file_path}"
+			if [ "${sys_dpm_group_perm}" = 'yes' ]
+			then
+				chmod 664 "${file_path}"
+			else
+				chmod 644 "${file_path}"
+			fi
+		done
+	done
+}
+
+_unset_user_perm () {
+	printf 'dpm_user=%s\n' 'root' | _logger
+	printf 'dpm_group=%s\n' 'root' | _logger
+	printf 'dpm_group_perm=%s\n' 'no' | _logger
+	for card in $(_list_cards "${sys_dpm_cards}")
+	do
+		for file in 'power_dpm_force_performance_level' 'power_dpm_state'
+		do
+			file_path="/sys/class/drm/card${card}/device/${file}"
+			chown 'root' "${file_path}"
+			chgrp 'root' "${file_path}"
+			chmod 644 "${file_path}"
+		done
+	done
+}
+
+_start () {
+	_set_user_perm
+	/usr/bin/dpm-query set "${sys_dpm_cards}" "${sys_dpm_level}" "${sys_dpm_state}"
+}
+
+_stop () {
+	_unset_user_perm
+	/usr/bin/dpm-query set all 'auto' 'balanced'
+}
+
+_help () {
+	cat <<-EOF
+	usage: ${0} <action>
+
+	action:
+	${tab}start  (start the service)
+	${tab}stop   (stop the service)
+	${tab}help   (print this help)
+
+	EOF
+
+	exit 0
+}
+
+case "${1}" in
+	'start')
+		_start
+	;;
+	'stop')
+		_stop
+	;;
+	*)
+		_help
+	;;
+esac
