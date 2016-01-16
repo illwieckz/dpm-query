@@ -44,11 +44,11 @@ _check_card () {
 _check_dpm () {
 	if ! _test_dpm_available "${1}"
 	then
-		printf 'ERROR: dpm not available\n' | _logger
+		printf 'ERROR: dpm not available for card %s\n' "${1}" | _logger
 		exit 12
 	elif ! _test_dpm_enabled "${1}"
 	then
-		printf 'ERROR: dpm not enabled\n' | _logger
+		printf 'ERROR: dpm not enabled for card %s\n' "${1}" | _logger
 		exit 13
 	fi
 }
@@ -95,6 +95,10 @@ _set () {
 	fi
 }
 
+_test_permission () {
+	touch "/sys/class/drm/card${1}/device/${2}" 2>/dev/null
+}
+
 if [ "${AS_INCLUDE}" = 'yes' ]
 then
 	return
@@ -107,6 +111,7 @@ _help () {
 	action:
 	${tab}get            (get DPM profile from selected cards)
 	${tab}set            (set DPM profile on selected cards)
+	${tav}test           (test if you can set profile on selected cards)
 	${tab}help           (print this help)
 
 	cards:
@@ -165,9 +170,42 @@ case "${1}" in
 				user_dpm_state="${4}"
 			fi
 
-			_set "${card}" 'power_dpm_force_performance_level' "${user_dpm_level}" || exit 31
-			_set "${card}" 'power_dpm_state' "${user_dpm_state}" || exit 32
+			if _test_permission "${card}" 'power_dpm_force_performance_level'
+			then
+				_set "${card}" 'power_dpm_force_performance_level' "${user_dpm_level}" || exit 31
+			else
+				printf 'ERROR: write forbidden for card%s/power_dpm_force_performance_level\n' "${card}"
+			fi
+
+			if _test_permission "${card}" 'power_dpm_state'
+			then
+				_set "${card}" 'power_dpm_state' "${user_dpm_state}" || exit 32
+			else
+				printf 'ERROR: write forbidden for card%s/power_dpm_state\n' "${card}"
+			fi
 		done
+	;;
+	'test')
+		cards="${2:-default}"
+		for card in $(_list_cards "${cards}")
+		do
+			_check_card "${card}"
+			_check_dpm "${card}"
+
+			if ! _test_permission "${card}" 'power_dpm_force_performance_level'
+			then
+				printf 'forbidden\n'
+				exit 41
+			fi
+
+			if ! _test_permission "${card}" 'power_dpm_state'
+			then
+				printf 'forbidden\n'
+				exit 42
+			fi
+		done
+
+		printf 'allowed\n'
 	;;
 	*)
 		_help

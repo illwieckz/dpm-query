@@ -1,6 +1,7 @@
 DPM query
 =========
 
+
 About
 -----
 
@@ -15,6 +16,7 @@ You can edit `/etc/dpm-query/dpm.cfg` and `/etc/dpm-query/service.cfg` configura
 This tool and this service were written to workaround a [Radeon driver bug](https://bugs.freedesktop.org/show_bug.cgi?id=91880) triggered by the default `auto` level, that's why the service does not use the default level to prevent GPU lockups. You can use the service for this purpose if you need it, or to set a DPM profile you want to have at startup just because you like it.
 
 Use this tool and this service at your own risk.
+
 
 How to
 ------
@@ -44,6 +46,9 @@ How to use the `dpm-query` tool:
 ```sh
 # set high level and performance state profile on all DPM enabled cards
 dpm-query set all high performance
+
+# check if you can set DPM profile on selected DPM cards
+dpm-query test 0,1,2
 
 # set default on configured DPM enabled cards
 dpm-query set default default default
@@ -77,10 +82,18 @@ More
 
 If you are a GNOME Shell user, you can try the [`radeon-dpm-control`](https://github.com/JuBan1/radeon-dpm-control) extension by Julian.
 
+
+Warning
+-------
+
+No warranty is given, use this at your own risk.
+
+
 Author
 ------
 
 Thomas Debesse <dev@illwieckz.net>
+
 
 Copyright
 ---------
