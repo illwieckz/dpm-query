@@ -18,8 +18,10 @@ Use this tool and this service at your own risk.
 How to
 ------
 
+How to install/uninstall the `dpm-query` tool:
+
 ```sh
-# get the sources
+# clone the repository
 
 git clone https://github.com/illwieckz/dpm-query.git
 
@@ -31,6 +33,26 @@ cd dpm-query
 
 make install
 
+# uninstall tool
+
+make uninstall
+```
+
+How to install/uninstall the `dpm-set` systemd service (optionnal):
+
+```sh
+# install service (optional, it automatically installs dpm-query)
+
+make service
+
+# uninstall service (optional, it automatically uninstalls dpm-query)
+
+make unservice
+```
+
+How to use the `dpm-query` tool:
+
+```sh
 # set high level and performance state profile on all DPM enabled cards
 
 dpm-query set all high performance
@@ -46,18 +68,6 @@ dpm-query get
 # read more help
 
 dpm-query help
-
-# uninstall tool
-
-make uninstall
-
-# install service
-
-make service
-
-# uninstall service
-
-make unservice
 ```
 
 Author
