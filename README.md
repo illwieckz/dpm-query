@@ -31,11 +31,11 @@ cd dpm-query
 
 # install tool
 
-make install
+sudo make install
 
 # uninstall tool
 
-make uninstall
+sudo make uninstall
 ```
 
 How to install/uninstall the `dpm-set` systemd service (optionnal):
@@ -43,11 +43,11 @@ How to install/uninstall the `dpm-set` systemd service (optionnal):
 ```sh
 # install service (optional, it automatically installs dpm-query)
 
-make service
+sudo make service
 
 # uninstall service (optional, it automatically uninstalls dpm-query)
 
-make unservice
+sudo make unservice
 ```
 
 How to use the `dpm-query` tool:
@@ -55,11 +55,11 @@ How to use the `dpm-query` tool:
 ```sh
 # set high level and performance state profile on all DPM enabled cards
 
-dpm-query set all high performance
+sudo dpm-query set all high performance
 
 # set default on all DPM enabled cards
 
-dpm-query set
+sudo dpm-query set
 
 # get current level and state profile for all DPM enabled cards
 
