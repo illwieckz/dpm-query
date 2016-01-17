@@ -47,7 +47,7 @@ How to use the `dpm-query` tool:
 # set high level and performance state profile on all DPM enabled cards
 dpm-query set all high performance
 
-# check if you can set DPM profile on selected DPM cards
+# check if you can set DPM profiles on selected DPM cards
 dpm-query test 0,1,2
 
 # set default on configured DPM enabled cards
@@ -80,7 +80,7 @@ systemctl restart dpm-query.service
 More
 ----
 
-If you are a GNOME Shell user, you can try the [`radeon-dpm-control`](https://github.com/JuBan1/radeon-dpm-control) extension by Julian.
+If you are a GNOME Shell user, you can try the [`radeon-dpm-control`](https://github.com/JuBan1/radeon-dpm-control) extension by Julian, which is based on `dpm-query`.
 
 
 Warning
@@ -98,4 +98,4 @@ Thomas Debesse <dev@illwieckz.net>
 Copyright
 ---------
 
-This tool and service are distributed under the highly permissive and laconic [ISC License](COPYING.md).
+These tool and service are distributed under the highly permissive and laconic [ISC License](COPYING.md).
