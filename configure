@@ -11,7 +11,7 @@ _help () {
 
 	options:
 	${tab}--enable-service (enable systemd service installation)
-	${tab}-h|--help        (print this help)
+	${tab}-h, --help       (print this help)
 
 	EOF
 
@@ -22,12 +22,11 @@ install_service='false'
 for arg in ${@}
 do
 	case "${arg}" in
-		'-h'|'--help')
-			_help
-			exit
-		;;
 		'--enable-service')
 			install_service='true'
+		;;
+		'-h'|'--help')
+			_help
 		;;
 	esac
 done
