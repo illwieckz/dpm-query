@@ -172,16 +172,18 @@ case "${1}" in
 
 			if _test_permission "${card}" 'power_dpm_force_performance_level'
 			then
-				_set "${card}" 'power_dpm_force_performance_level' "${user_dpm_level}" || exit 31
+				_set "${card}" 'power_dpm_force_performance_level' "${user_dpm_level}"
 			else
 				printf 'ERROR: write forbidden for card%s/power_dpm_force_performance_level\n' "${card}"
+				exit 31
 			fi
 
 			if _test_permission "${card}" 'power_dpm_state'
 			then
-				_set "${card}" 'power_dpm_state' "${user_dpm_state}" || exit 32
+				_set "${card}" 'power_dpm_state' "${user_dpm_state}"
 			else
 				printf 'ERROR: write forbidden for card%s/power_dpm_state\n' "${card}"
+				exit 32
 			fi
 		done
 	;;
@@ -192,20 +194,23 @@ case "${1}" in
 			_check_card "${card}"
 			_check_dpm "${card}"
 
-			if ! _test_permission "${card}" 'power_dpm_force_performance_level'
-			then
-				printf 'forbidden\n'
-				exit 41
-			fi
-
-			if ! _test_permission "${card}" 'power_dpm_state'
-			then
-				printf 'forbidden\n'
-				exit 42
-			fi
+			forbidden='false'
+			for option in 'power_dpm_force_performance_level' 'power_dpm_state'
+			do
+				if ! _test_permission "${card}" 'power_dpm_force_performance_level'
+				then
+					printf 'card%s/%s: "forbidden"\n' "${card}" "${option}"
+					forbidden='true'
+				else
+					printf 'card%s/%s: "allowed"\n' "${card}" "${option}"
+				fi
+			done
 		done
 
-		printf 'allowed\n'
+		if [ "${forbidden}" = 'true' ]
+		then
+			return 41
+		fi
 	;;
 	*)
 		_help
