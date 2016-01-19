@@ -111,7 +111,7 @@ _help () {
 	action:
 	${tab}get            (get DPM profile from selected cards)
 	${tab}set            (set DPM profile on selected cards)
-	${tav}test           (test if you can set profile on selected cards)
+	${tab}test           (test if you can set profile on selected cards)
 	${tab}help           (print this help)
 
 	cards:
