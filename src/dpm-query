@@ -26,11 +26,22 @@ _test_card () {
 }
 
 _test_dpm_available () {
-	[ -f "/sys/class/drm/card${1}/device/power_method" ]
+	[ -f "/sys/class/drm/card${1}/device/power_dpm_state" ]
 }
 
 _test_dpm_enabled () {
-	[ "$(cat "/sys/class/drm/card${1}/device/power_method")" = 'dpm' ]
+	if [ ! -f "/sys/class/drm/card${1}/device/power_method" ]
+	then
+		# amdgpu driver
+		true
+	elif [ "$(cat "/sys/class/drm/card${1}/device/power_method")" = 'dpm' ]
+	then
+		# radeon driver using dpm power method
+		true
+	else
+		# radeon driver using another power method
+		false
+	fi
 }
 
 _check_card () {
