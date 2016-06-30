@@ -36,7 +36,7 @@ _test_dpm_enabled () {
 _check_card () {
 	if ! _test_card "${1}"
 	then
-		printf 'ERROR: missing card%s\n' "${1}" | _logger
+		printf 'ERROR: missing card %s\n' "${1}" | _logger
 		exit 11
 	fi
 }
