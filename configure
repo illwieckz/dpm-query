@@ -10,24 +10,32 @@ _help () {
 	usage: ${0} [options]
 
 	options:
-	${tab}--enable-service (enable systemd service installation)
-	${tab}-h, --help       (print this help)
+	${tab}--enable-service
+	${tab}${tab}enable systemd service installation)
+	${tab}--enable-service-start
+	${tab}${tab}start systemd service on installation)
+	${tab}-h, --help
+	${tab}${tab}print this help)
 
 	EOF
 
 	exit 0
 }
 
-install_service='false'
+enable_service='false'
+enable_service_start='false'
 for arg in ${@}
 do
 	case "${arg}" in
 		'--enable-service')
-			install_service='true'
-		;;
+			enable_service='true'
+			;;
+		'--enable-service-start')
+			enable_service_start='true'
+			;;
 		'-h'|'--help')
 			_help
-		;;
+			;;
 	esac
 done
 
@@ -36,47 +44,61 @@ _write_makefile () {
 	all:
 
 	install_tool:
-	${tab}cp src/dpm-query /usr/bin/dpm-query
-	${tab}chmod +x /usr/bin/dpm-query
-	${tab}mkdir -p /etc/dpm-query
-	${tab}cp src/dpm.cfg /etc/dpm-query/dpm.cfg
+	${tab}install --directory /usr/bin
+	${tab}install --mode=a+x src/dpm-query /usr/bin/dpm-query
+	${tab}install --directory /etc/dpm-query
+	${tab}install src/dpm.cfg /etc/dpm-query/dpm.cfg
 
 	uninstall_tool:
 	${tab}rm /usr/bin/dpm-query
 	${tab}rm /etc/dpm-query/dpm.cfg
-	${tab}rmdir /etc/dpm-query
-
-	install_service:
-	${tab}cp src/service.cfg /etc/dpm-query/service.cfg
-	${tab}cp src/dpm-query-service /usr/bin/dpm-query-service
-	${tab}chmod +x /usr/bin/dpm-query-service
-	${tab}cp src/dpm-query.service /lib/systemd/system/dpm-query.service
-	${tab}systemctl enable dpm-query.service
-	${tab}systemctl start dpm-query.service
-
-	uninstall_service:
-	${tab}systemctl stop dpm-query.service
-	${tab}systemctl disable dpm-query.service
-	${tab}rm /usr/bin/dpm-query-service
-	${tab}rm /lib/systemd/system/dpm-query.service
-	${tab}rm /etc/dpm-query/service.cfg
-
+	${tab}rmdir --parents --ignore-fail-on-non-empty /etc/dpm-query
 	EOF
 
-	if [ "${install_service}" = 'true' ]
+	if "${enable_service}"
 	then
 		cat >> Makefile <<-EOF
+
+		install_service:
+		${tab}install --directory /usr/bin
+		${tab}install --mode=a+x src/dpm-query-service /usr/bin/dpm-query-service
+		${tab}install --directory /etc/dpm-query
+		${tab}install src/service.cfg /etc/dpm-query/service.cfg
+		${tab}install --directory /lib/systemd/system
+		${tab}install src/dpm-query.service /lib/systemd/system/dpm-query.service
+		EOF
+
+		if "${enable_service_start}"
+		then
+			cat >> Makefile <<-EOF
+			${tab}systemctl enable dpm-query.service
+			${tab}systemctl start dpm-query.service
+			EOF
+		fi
+
+		cat >> Makefile <<-EOF
+
+		uninstall_service:
+		${tab}systemctl stop dpm-query.service
+		${tab}systemctl disable dpm-query.service
+		${tab}rm /usr/bin/dpm-query-service
+		${tab}rm /lib/systemd/system/dpm-query.service
+		${tab}rm /etc/dpm-query/service.cfg
+
+		EOF
+
+		cat >> Makefile <<-EOF
+
 		install: install_tool install_service
 
 		uninstall: uninstall_service uninstall_tool
-
 		EOF
 	else
 		cat >> Makefile <<-EOF
+
 		install: install_tool
 
 		uninstall: uninstall_tool
-
 		EOF
 	fi
 }

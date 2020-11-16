@@ -5,15 +5,15 @@ DPM query
 About
 -----
 
-This project provides a tool to set DPM profiles for your Radeon GPU and a Systemd service.
+This project provides a tool to set DPM profiles for your Radeon GPU and a systemd service.
 The service will be started before GDM (usefull if you need to change some values at computer startup because default settings are unsafe).
 
-By default the `dpm-query` tool sets all DPM enabled cards to level `auto` and state `balanced` (system default but sometime unsafe), and the `dpm-set` service sets all DPM enabled cards to level `low` and state `battery`, which is both safe and energy saver. The service also allows members of group `video` to set DPM profiles.
+By default the `dpm-query` tool sets all DPM enabled cards to level `auto` and state `balanced` (system default but sometime unsafe), and the `dpm-set` service sets all DPM enabled cards to level `auto` and state `performance`, which is both safe and the most performant energy saving profile. The service also allows members of group `video` to set DPM profiles.
 
 The tool is installed in `/usr/bin` prefix and the service in `/lib/systemd/system/` directory.
 You can edit `/etc/dpm-query/dpm.cfg` and `/etc/dpm-query/service.cfg` configuration files to change default DPM profiles or enable the user or the group you prefer.
 
-This tool and this service were written to workaround a [Radeon driver bug](https://bugs.freedesktop.org/show_bug.cgi?id=91880) triggered by the default `auto` level, that's why the service does not use the default level to prevent GPU lockups. You can use the service for this purpose if you need it, or to set a DPM profile you want to have at startup just because you like it.
+This tool and this service were written to workaround a [Radeon driver bug](https://bugs.freedesktop.org/show_bug.cgi?id=91880) triggered by the default `balanced` state, that's why the service does not use the default state to prevent GPU lockups. You can use the service for this purpose if you need it, or to set a DPM profile you want to have at startup just because you like it.
 
 Use this tool and this service at your own risk.
 
@@ -35,12 +35,26 @@ cd dpm-query
 sudo make install
 
 # install tool and service
-./configure --enable-service
+./configure --enable-service --enable-service-start
 sudo make install
 
 # uninstall
 sudo make uninstall
 ```
+
+People may create a dpkg package this way (given `fakeroot` and `checkinstall` is already installed:
+
+```sh
+./configure --enable-service
+printf 'n\n\n\n' \
+| fakeroot checkinstall --fstrans \
+	--pkgname='dpm-query' \
+	--pkgversion='0~git' \
+	--pkglicense='ISC' \
+	--pkgarch='all' \
+	--deldesc='yes'
+```
+
 How to use the `dpm-query` tool:
 
 ```sh
@@ -63,6 +77,13 @@ dpm-query get
 dpm-query help
 ```
 
+To set default profile to `low/battery` (most energy-saving level and state), modify the `/etc/dpm-query/dpm.cfg` file this way:
+
+```
+dpm_level='low'
+dpm_state='battery'
+```
+
 To allow `illwieckz` user only to set DPM profiles, modify the `/etc/dpm-query/service.cfg` file this way:
 
 ```
@@ -76,6 +97,7 @@ Then restart the service:
 ```sh
 systemctl restart dpm-query.service
 ```
+
 
 More
 ----
